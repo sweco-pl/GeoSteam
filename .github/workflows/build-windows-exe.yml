@@ -1,0 +1,104 @@
+name: Build Windows exe
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalacja bibliotek i PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+
+      - name: Budowanie GeoSteam (folder z GeoSteam.exe)
+        run: >
+          python -m PyInstaller --noconfirm --clean --onedir --windowed --name GeoSteam
+          --add-data "zrodla.json;." --collect-all pyogrio --collect-all pyproj
+          --hidden-import geosteam.gui geosteam_start.py
+
+      - name: Test dymny (aktualizacja jednej warstwy PRG)
+        shell: pwsh
+        timeout-minutes: 20
+        run: |
+          $test = Join-Path $env:RUNNER_TEMP "geosteam-test"
+          New-Item -ItemType Directory -Force -Path $test | Out-Null
+          Copy-Item dist\GeoSteam $test -Recurse
+          $app = Join-Path $test "GeoSteam"
+
+          @'
+          {
+            "folder_danych": "dane",
+            "nazwy_warstw": {},
+            "zrodla": [
+              {
+                "nazwa": "PRG test",
+                "wfs_url": "https://mapy.geoportal.gov.pl/wss/service/PZGIK/PRG/WFS/AdministrativeBoundaries",
+                "plik": "PRG_test.gpkg",
+                "warstwy": ["ms:A01_Granice_wojewodztw"],
+                "ostatnia_aktualizacja": null
+              }
+            ]
+          }
+          '@ | Set-Content -Path (Join-Path $app "zrodla.json") -Encoding utf8NoBOM
+
+          $proces = Start-Process -FilePath (Join-Path $app "GeoSteam.exe") -ArgumentList "--aktualizuj" `
+            -WorkingDirectory $app -Wait -PassThru
+          if ($proces.ExitCode -ne 0) { throw "GeoSteam.exe zakonczyl sie kodem $($proces.ExitCode)" }
+          if (Test-Path (Join-Path $app "blad.txt")) { throw "GeoSteam.exe zapisal blad.txt" }
+
+          $gpkg = Join-Path $app "dane\PRG_test.gpkg"
+          if (-not (Test-Path $gpkg)) { throw "Brak pliku GeoPackage: $gpkg" }
+
+          python -c "import sys, pyogrio; i = pyogrio.read_info(sys.argv[1], layer='A01_Granice_wojewodztw'); assert i['features'] == 16, i['features']; assert str(i['crs']) == 'EPSG:2180', i['crs']; print('OK', i['features'], i['crs'])" $gpkg
+          if ($LASTEXITCODE -ne 0) { throw "Sprawdzenie GeoPackage nie powiodlo sie" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoSteam-windows
+          path: dist/GeoSteam
+          if-no-files-found: error
+
+      - name: Instalacja WiX Toolset (budowanie instalatora .msi)
+        shell: pwsh
+        run: |
+          # Wersja przypieta na 5.x - WiX 7+ wymaga oplaty "Open Source Maintenance Fee"
+          # (https://wixtoolset.org/osmf/) dla firm o rocznym przychodzie powyzej 10 000 USD.
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add -g WixToolset.UI.wixext/5.0.2
+          wix extension add -g WixToolset.Util.wixext/5.0.2
+
+      - name: Budowanie instalatora MSI
+        shell: pwsh
+        run: |
+          $msiVersion = "1.0.${{ github.run_number }}"
+          wix build "installer\Package.wxs" `
+            -arch x64 `
+            -ext WixToolset.UI.wixext `
+            -ext WixToolset.Util.wixext `
+            -d DistDir="$(Get-Location)\dist\GeoSteam" `
+            -d SourceDir="$(Get-Location)" `
+            -d GeoSteamVersion=$msiVersion `
+            -o "dist\GeoSteam-Setup-$msiVersion.msi"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoSteam-installer-msi
+          path: dist/GeoSteam-Setup-*.msi
+          if-no-files-found: error

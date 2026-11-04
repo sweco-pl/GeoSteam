@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Źródło instalatora MSI dla GeoSteam (WiX Toolset v5).
+  Buduje się skryptem installer\build_installer.bat, który najpierw uruchamia build_exe.bat
+  (PyInstaller) i pakuje zawartość dist\GeoSteam\ w jeden plik .msi.
+
+  Kreator instalacji (WixUI_FeatureTree):
+  - pozwala wybrać folder instalacji (domyślnie "Program Files\GeoSteam", przycisk "Przeglądaj"
+    w drzewku funkcji),
+  - ma opcjonalną funkcję "Skrót na pulpicie" (domyślnie zaznaczoną, można odznaczyć).
+
+  Uwaga: program (w przeciwieństwie do ręcznie rozpakowanego dist\GeoSteam\ - patrz README.md) zapisuje
+  obok siebie dane, raporty i konfigurację, mimo instalacji w Program Files. Jest to możliwe, bo
+  instalator jawnie nadaje grupie "Users" prawo zapisu w folderze instalacji (komponent
+  InstallFolderPermissions, util:PermissionEx). WiX wymaga też, żeby domyślny folder instalacji z
+  automatycznie generowanymi identyfikatorami komponentów (harvesting plików przez <Files>) leżał w
+  jednym ze standardowych folderów Windows (np. ProgramFilesFolder) - stąd ten wybór.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package Name="GeoSteam"
+            Manufacturer="GeoSteam"
+            Version="$(var.GeoSteamVersion)"
+            UpgradeCode="d2a83b40-868c-4081-ab19-f633dce96eee"
+            Language="1045"
+            Codepage="1250"
+            Scope="perMachine">
+
+    <SummaryInformation Manufacturer="GeoSteam" Description="Instalator GeoSteam" />
+
+    <MajorUpgrade DowngradeErrorMessage="Zainstalowana jest nowsza wersja GeoSteam. Odinstaluj ją przed instalacją tej wersji." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Domyślny folder instalacji: Program Files\GeoSteam (patrz uwaga na górze pliku o prawach zapisu) -->
+    <StandardDirectory Id="ProgramFilesFolder">
+      <Directory Id="INSTALLFOLDER" Name="GeoSteam" />
+    </StandardDirectory>
+
+    <Icon Id="GeoSteamIcon.ico" SourceFile="$(var.SourceDir)\ikona.ico" />
+    <Property Id="ARPPRODUCTICON" Value="GeoSteamIcon.ico" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+
+    <!-- wymagane przez WixUI_FeatureTree/InstallDir do obsługi przycisku "Przeglądaj" -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+    <!-- Główna funkcja: plik exe, wszystkie biblioteki PyInstallera i skrót w Menu Start -->
+    <Feature Id="MainApplication" Title="GeoSteam" Level="1" AllowAdvertise="no" AllowAbsent="no">
+      <ComponentGroupRef Id="ApplicationFiles" />
+      <ComponentRef Id="GeoSteamExeComponent" />
+      <ComponentRef Id="StartMenuShortcutComponent" />
+      <ComponentRef Id="InstallFolderPermissions" />
+    </Feature>
+
+    <!-- Opcjonalna funkcja: skrót na pulpicie - domyślnie zaznaczona (Level=1), można odznaczyć w kreatorze -->
+    <Feature Id="DesktopShortcutFeature" Title="Skrót na pulpicie"
+             Description="Tworzy skrót do GeoSteam na pulpicie." Level="1" AllowAdvertise="no">
+      <ComponentRef Id="DesktopShortcutComponent" />
+    </Feature>
+
+    <!-- Wszystkie pliki z dist\GeoSteam\ poza samym GeoSteam.exe (ten jest zadeklarowany osobno niżej,
+         żeby dołączyć do niego skróty i ikonę). build_installer.bat usuwa z dist\GeoSteam\ foldery/pliki
+         tworzone dopiero przy uruchomieniu programu (dane\, raporty\, scenariusze\, ustawienia.json) -
+         WiX przy wykluczeniu nieistniejącego folderu (Exclude) potrafi po cichu zwrócić zero plików,
+         dlatego tych wykluczeń celowo nie ma tutaj. -->
+    <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.DistDir)\**">
+        <Exclude Files="$(var.DistDir)\GeoSteam.exe" />
+      </Files>
+    </ComponentGroup>
+
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="GeoSteamExeComponent" Guid="a1b2c3d4-0001-4f2e-9a3b-1c2d3e4f5061">
+        <File Id="GeoSteamEXE" Source="$(var.DistDir)\GeoSteam.exe" KeyPath="yes" />
+      </Component>
+
+      <!-- nadaje zwykłym użytkownikom prawo zapisu w folderze instalacji (dane\, raporty\, scenariusze\,
+           zrodla.json, ustawienia.json powstają i są nadpisywane przy użyciu programu, nie tylko przez administratora) -->
+      <Component Id="InstallFolderPermissions" Guid="a1b2c3d4-0002-4f2e-9a3b-1c2d3e4f5061">
+        <CreateFolder>
+          <util:PermissionEx User="Users" GenericAll="yes" />
+        </CreateFolder>
+        <RegistryValue Root="HKLM" Key="Software\GeoSteam" Name="zainstalowano" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcutComponent" Guid="a1b2c3d4-0003-4f2e-9a3b-1c2d3e4f5061">
+        <Shortcut Id="StartMenuShortcut" Name="GeoSteam" Target="[#GeoSteamEXE]"
+                  WorkingDirectory="INSTALLFOLDER" Icon="GeoSteamIcon.ico" />
+        <RemoveFolder Id="RemoveProgramMenuShortcut" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\GeoSteam" Name="skrot_menu_start" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcutComponent" Guid="a1b2c3d4-0004-4f2e-9a3b-1c2d3e4f5061">
+        <Shortcut Id="DesktopShortcut" Name="GeoSteam" Target="[#GeoSteamEXE]"
+                  WorkingDirectory="INSTALLFOLDER" Icon="GeoSteamIcon.ico" />
+        <RegistryValue Root="HKCU" Key="Software\GeoSteam" Name="skrot_pulpit" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <!-- Kreator z wyborem folderu instalacji i drzewkiem funkcji (pozwala odznaczyć skrót na pulpicie) -->
+    <ui:WixUI Id="WixUI_FeatureTree" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\installer\License.rtf" />
+  </Package>
+</Wix>
