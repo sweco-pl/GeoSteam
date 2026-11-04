@@ -12,6 +12,7 @@ Aplikacja pozwala:
 - wyszukiwać zbiory danych i usługi WFS w katalogu EZiUDP,
 - pobierać i aktualizować wybrane warstwy do lokalnych plików GeoPackage,
 - porównywać nowe dane z wcześniej pobranymi i generować raport zmian,
+- tworzyć scenariusze, czyli listy źródeł i warstw, które można aktualizować,
 - uruchamiać aktualizacje cyklicznie według harmonogramu,
 - działać zarówno z poziomu GUI (Tkinter), jak i w trybie konsolowym (`--aktualizuj`), np. z zaplanowanego zadania Windows.
 
