@@ -265,9 +265,9 @@ class Aplikacja:
         ttk.Label(info, text="Wersja: 1.0.0").pack(anchor="w")
         ttk.Label(info, text="Autor: Łukasz Maćkiewicz, SWECO").pack(anchor="w")
         self._wiersz_z_linkiem(info, "Kontakt: ", "lukasz.mackiewicz@sweco.pl", "mailto:lukasz.mackiewicz@sweco.pl")
-        self._wiersz_z_linkiem(info, "Repozytorium: ", "https://github.com/TwojeRepozytorium/GeoSteam")
-        self._wiersz_z_linkiem(info, "Zgłoś błąd: ", "https://github.com/TwojeRepozytorium/GeoSteam/issues")
-        ttk.Label(info, text="Licencja: MIT").pack(anchor="w")
+        self._wiersz_z_linkiem(info, "Repozytorium: ", "https://github.com/sweco-pl/GeoSteam", "https://github.com/sweco-pl/GeoSteam")
+        self._wiersz_z_linkiem(info, "Zgłoś błąd: ", "https://github.com/sweco-pl/GeoSteam/issues", "https://github.com/sweco-pl/GeoSteam/issues")
+        ttk.Label(info, text="Licencja: GPL-3.0").pack(anchor="w")
         
         faq = ttk.LabelFrame(rodzic, text="FAQ", padding=6)
         faq.pack(fill="x", pady=(8, 0))
