@@ -1,5 +1,5 @@
 {
-  "folder_danych": "C:/Users/PL1D3W/Desktop/test/Nowy folder",
+  "folder_danych": "dane",
   "nazwy_warstw": {
     "ms:A00_Granice_panstwa": "A00_Granice_panstwa",
     "ms:A01_Granice_wojewodztw": "A01_Granice_wojewodztw",
@@ -61,98 +61,25 @@
   },
   "zrodla": [
     {
-      "nazwa": "PRG - granice administracyjne",
-      "wfs_url": "https://mapy.geoportal.gov.pl/wss/service/PZGIK/PRG/WFS/AdministrativeBoundaries",
-      "plik": "GUGIK_PRG.gpkg",
-      "warstwy": [
-        "ms:A00_Granice_panstwa",
-        "ms:A01_Granice_wojewodztw",
-        "ms:A02_Granice_powiatow",
-        "ms:A03_Granice_gmin",
-        "ms:A04_Granice_miast",
-        "ms:A05_Granice_jednostek_ewidencyjnych",
-        "ms:A06_Granice_obrebow_ewidencyjnych"
-      ],
-      "ostatnia_aktualizacja": "2026-11-03T11:57"
-    },
-    {
-      "nazwa": "SIPAM - granice morskie, porty i przystanie",
-      "wfs_url": "https://ogc.sipam.gov.pl/geoserver/SIPAM/wfs",
-      "plik": "SIPAM_.gpkg",
-      "warstwy": [
-        "SIPAM:a_view_coastal_zone_border_ochr",
-        "SIPAM:a_view_coastal_zone_border_tech",
-        "SIPAM:a_view_maritime_office_border",
-        "SIPAM:a_view_coastline",
-        "SIPAM:a_view_baseline",
-        "SIPAM:a_view_maritime_office_zone",
-        "SIPAM:a_view_port"
-      ],
-      "ostatnia_aktualizacja": "2026-11-03T11:57"
-    },
-    {
-      "nazwa": "MIDAS - złoża kopalin i obszary górnicze",
-      "wfs_url": "https://cbdgmapa.pgi.gov.pl/arcgis/services/midas/MapServer/WFSServer",
-      "plik": "PIG_MIDAS.gpkg",
-      "warstwy": [
-        "midas:MIDAS_-_udokumentowane_złoża_kopalin",
-        "midas:MIDAS_-_obszary_górnicze",
-        "midas:MIDAS_-_tereny_górnicze"
-      ],
-      "ostatnia_aktualizacja": "2026-11-03T12:00"
-    },
-    {
-      "nazwa": "GDOŚ - formy ochrony przyrody",
+      "nazwa": "Centralny Rejestr Form Ochrony Przyrody",
       "wfs_url": "http://sdi.gdos.gov.pl/wfs",
-      "plik": "GDOŚ_FOP.gpkg",
+      "plik": "GDOŚ_FormyOchronyPrzyrody.gpkg",
       "warstwy": [
-        "GDOS:ParkiNarodowe",
-        "GDOS:Rezerwaty",
-        "GDOS:ParkiKrajobrazowe",
-        "GDOS:ObszaryChronionegoKrajobrazu",
-        "GDOS:SpecjalneObszaryOchrony",
+        "GDOS:korytarzeEkologiczne",
         "GDOS:ObszarySpecjalnejOchrony",
-        "GDOS:PomnikiPrzyrodyPunktowe",
+        "GDOS:SpecjalneObszaryOchrony",
+        "GDOS:ObszaryChronionegoKrajobrazu",
+        "GDOS:ramsar",
+        "GDOS:ParkiKrajobrazowe",
+        "GDOS:ParkiNarodowe",
         "GDOS:PomnikiPrzyrodyPowierzchniowe",
+        "GDOS:PomnikiPrzyrodyPunktowe",
+        "GDOS:Rezerwaty",
         "GDOS:StanowiskaDokumentacyjne",
         "GDOS:UzytkiEkologiczne",
         "GDOS:ZespolyPrzyrodniczoKrajobrazowe"
       ],
-      "ostatnia_aktualizacja": "2026-11-03T12:01"
-    },
-    {
-      "nazwa": "Zabytki - pomniki historii i Światowe Dziedzictwo UNESCO",
-      "wfs_url": "https://usluga.zabytek.gov.pl/INSPIRE_WFS_WHD/service.svc/get",
-      "plik": "NID_ZABYTKI.gpkg",
-      "warstwy": [
-        "gmgml:World_Heritage_Properties_List",
-        "gmgml:Historic_Monuments_List"
-      ],
-      "ostatnia_aktualizacja": "2026-11-03T12:01"
-    },
-    {
-      "nazwa": "GZWP - główne zbiorniki wód podziemnych",
-      "wfs_url": "https://cbdgmapa.pgi.gov.pl/arcgis/services/hydrogeologia/gzwp/MapServer/WFSServer",
-      "plik": "PGI_GZWP.gpkg",
-      "warstwy": [
-        "gmgml:GZWP_udokumentowane"
-      ],
-      "ostatnia_aktualizacja": "2026-11-03T12:01"
-    },
-    {
-      "nazwa": "PRG - granice instytucji (lasy, zlewnie, urzędy morskie)",
-      "wfs_url": "https://mapy.geoportal.gov.pl/wss/service/PZGIK/PRG/WFS/AdministrativeBoundaries",
-      "plik": "GUGIK_GRANICE_INSTYTUCJI.gpkg",
-      "warstwy": [
-        "ms:U06_Nadlesnictwo",
-        "ms:U07_Regionalna_dyrekcja_lasow_panstwowych",
-        "ms:U08_Zarzad_zlewni_PGWWP",
-        "ms:U09_Regionalny_zarzad_gospodarki_wodnej_PGWWP",
-        "ms:U10_Urzad_morski",
-        "ms:U11_Urzad_zeglugi_srodladowej",
-        "ms:K08_Oddzial_strazy_granicznej"
-      ],
-      "ostatnia_aktualizacja": "2026-11-03T12:03"
+      "ostatnia_aktualizacja": null
     }
   ]
 }
