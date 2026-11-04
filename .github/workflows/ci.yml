@@ -27,6 +27,9 @@ jobs:
       - name: Lint with ruff
         run: ruff check . || true
 
+      - name: Smoke import test
+        run: python -c "import geosteam"
+
       - name: Run tests
         run: |
           if [ -d tests ]; then pytest; else echo "No tests directory yet, skipping."; fi

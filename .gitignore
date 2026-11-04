@@ -11,8 +11,15 @@ dist/
 
 # Virtual environments
 .venv/
+.venv-build/
 venv/
 env/
+
+# PyInstaller / instalator Windows
+*.spec.bak
+installer/*.msi
+installer/*.wixobj
+installer/*.wixpdb
 
 # Environment variables / secrets
 .env
