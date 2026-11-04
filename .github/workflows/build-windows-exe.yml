@@ -3,11 +3,12 @@ name: Build Windows exe
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -87,7 +88,12 @@ jobs:
       - name: Budowanie instalatora MSI
         shell: pwsh
         run: |
-          $msiVersion = "1.0.${{ github.run_number }}"
+          if ("${{ github.ref }}" -match '^refs/tags/v(\d+\.\d+\.\d+)$') {
+            $msiVersion = $Matches[1]
+          } else {
+            $msiVersion = "1.0.${{ github.run_number }}"
+          }
+          "MSI_VERSION=$msiVersion" >> $env:GITHUB_ENV
           wix build "installer\Package.wxs" `
             -arch x64 `
             -ext WixToolset.UI.wixext `
@@ -102,3 +108,44 @@ jobs:
           name: GeoSteam-installer-msi
           path: dist/GeoSteam-Setup-*.msi
           if-no-files-found: error
+
+      - name: Przygotowanie paczki zrodel + skryptow .bat (uruchom.bat / aktualizuj.bat)
+        shell: pwsh
+        run: |
+          $staging = Join-Path $env:RUNNER_TEMP "GeoSteam-zrodla-bat"
+          New-Item -ItemType Directory -Force -Path $staging | Out-Null
+
+          Copy-Item -Recurse -Path "geosteam" -Destination (Join-Path $staging "geosteam")
+          Copy-Item -Recurse -Path "scenariusze" -Destination (Join-Path $staging "scenariusze")
+          Copy-Item -Path "requirements.txt" -Destination $staging
+          Copy-Item -Path "zrodla.json" -Destination $staging
+          Copy-Item -Path "uruchom.bat" -Destination $staging
+          Copy-Item -Path "aktualizuj.bat" -Destination $staging
+          Copy-Item -Path "README.md" -Destination $staging
+          Copy-Item -Path "LICENSE" -Destination $staging
+
+          "Zawartosc paczki: $staging"
+          Get-ChildItem $staging
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoSteam-zrodla-bat
+          path: ${{ runner.temp }}/GeoSteam-zrodla-bat
+          if-no-files-found: error
+
+      - name: Spakowanie zip-ow do GitHub Release (tylko przy tagu v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist\GeoSteam\*" -DestinationPath "dist\GeoSteam-windows.zip"
+          Compress-Archive -Path "${{ runner.temp }}\GeoSteam-zrodla-bat\*" -DestinationPath "dist\GeoSteam-zrodla-bat.zip"
+
+      - name: Publikacja GitHub Release (tylko przy tagu v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/GeoSteam-windows.zip
+            dist/GeoSteam-Setup-*.msi
+            dist/GeoSteam-zrodla-bat.zip
